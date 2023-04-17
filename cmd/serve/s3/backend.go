@@ -5,6 +5,9 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
+	"github.com/Mikubill/gofakes3/signature"
+	"github.com/rclone/rclone/backend/webdav"
 	"io"
 	"log"
 	"os"
@@ -28,18 +31,38 @@ type s3Backend struct {
 	opt  *Options
 	lock sync.Mutex
 	fs   *vfs.VFS
+	w    *Server
 }
 
 // newBackend creates a new SimpleBucketBackend.
-func newBackend(fs *vfs.VFS, opt *Options) gofakes3.Backend {
+func newBackend(fs *vfs.VFS, opt *Options, w *Server) gofakes3.Backend {
 	return &s3Backend{
 		fs:  fs,
 		opt: opt,
+		w:   w,
 	}
+}
+
+func (db *s3Backend) setAuthForWebDAV() error {
+	filesys := db.fs.Fs()
+	db.fs.FlushDirCache()
+	if ft, ok := filesys.(*webdav.Fs); ok {
+		accessKey, err := db.w.faker.GetAccessKey()
+		if err != signature.ErrNone {
+			resp := signature.GetAPIError(err)
+			return errors.New(resp.Description)
+		}
+		ft.SetBearerToken(accessKey)
+	}
+	return nil
 }
 
 // ListBuckets always returns the default bucket.
 func (db *s3Backend) ListBuckets() ([]gofakes3.BucketInfo, error) {
+	err := db.setAuthForWebDAV()
+	if err != nil {
+		return nil, err
+	}
 	dirEntries, err := getDirEntries("/", db.fs)
 	if err != nil {
 		return nil, err
@@ -60,8 +83,11 @@ func (db *s3Backend) ListBuckets() ([]gofakes3.BucketInfo, error) {
 
 // ListBucket lists the objects in the given bucket.
 func (db *s3Backend) ListBucket(bucket string, prefix *gofakes3.Prefix, page gofakes3.ListBucketPage) (*gofakes3.ObjectList, error) {
-
-	_, err := db.fs.Stat(bucket)
+	err := db.setAuthForWebDAV()
+	if err != nil {
+		return nil, err
+	}
+	_, err = db.fs.Stat(bucket)
 	if err != nil {
 		return nil, gofakes3.BucketNotFound(bucket)
 	}
@@ -99,8 +125,11 @@ func (db *s3Backend) ListBucket(bucket string, prefix *gofakes3.Prefix, page gof
 //
 // Note that the metadata is not supported yet.
 func (db *s3Backend) HeadObject(bucketName, objectName string) (*gofakes3.Object, error) {
-
-	_, err := db.fs.Stat(bucketName)
+	err := db.setAuthForWebDAV()
+	if err != nil {
+		return nil, err
+	}
+	_, err = db.fs.Stat(bucketName)
 	if err != nil {
 		return nil, gofakes3.BucketNotFound(bucketName)
 	}
@@ -150,7 +179,10 @@ func (db *s3Backend) HeadObject(bucketName, objectName string) (*gofakes3.Object
 
 // GetObject fetchs the object from the filesystem.
 func (db *s3Backend) GetObject(bucketName, objectName string, rangeRequest *gofakes3.ObjectRangeRequest) (obj *gofakes3.Object, err error) {
-
+	err = db.setAuthForWebDAV()
+	if err != nil {
+		return nil, err
+	}
 	_, err = db.fs.Stat(bucketName)
 	if err != nil {
 		return nil, gofakes3.BucketNotFound(bucketName)
@@ -228,7 +260,10 @@ func (db *s3Backend) GetObject(bucketName, objectName string, rangeRequest *gofa
 
 // TouchObject creates or updates meta on specified object.
 func (db *s3Backend) TouchObject(fp string, meta map[string]string) (result gofakes3.PutObjectResult, err error) {
-
+	err = db.setAuthForWebDAV()
+	if err != nil {
+		return gofakes3.PutObjectResult{}, err
+	}
 	_, err = db.fs.Stat(fp)
 	if err == vfs.ENOENT {
 		f, err := db.fs.Create(fp)
@@ -273,7 +308,10 @@ func (db *s3Backend) PutObject(
 	meta map[string]string,
 	input io.Reader, size int64,
 ) (result gofakes3.PutObjectResult, err error) {
-
+	err = db.setAuthForWebDAV()
+	if err != nil {
+		return gofakes3.PutObjectResult{}, err
+	}
 	_, err = db.fs.Stat(bucketName)
 	if err != nil {
 		return result, gofakes3.BucketNotFound(bucketName)
@@ -349,11 +387,16 @@ func (db *s3Backend) PutObject(
 
 // DeleteMulti deletes multiple objects in a single request.
 func (db *s3Backend) DeleteMulti(bucketName string, objects ...string) (result gofakes3.MultiDeleteResult, rerr error) {
+
+	err := db.setAuthForWebDAV()
+	if err != nil {
+		return gofakes3.MultiDeleteResult{}, err
+	}
 	db.lock.Lock()
 	defer db.lock.Unlock()
 
 	for _, object := range objects {
-		if err := db.deleteObjectLocked(bucketName, object); err != nil {
+		if err = db.deleteObjectLocked(bucketName, object); err != nil {
 			log.Println("delete object failed:", err)
 			result.Error = append(result.Error, gofakes3.ErrorResult{
 				Code:    gofakes3.ErrInternal,
@@ -372,6 +415,10 @@ func (db *s3Backend) DeleteMulti(bucketName string, objects ...string) (result g
 
 // DeleteObject deletes the object with the given name.
 func (db *s3Backend) DeleteObject(bucketName, objectName string) (result gofakes3.ObjectDeleteResult, rerr error) {
+	err := db.setAuthForWebDAV()
+	if err != nil {
+		return gofakes3.ObjectDeleteResult{}, err
+	}
 	db.lock.Lock()
 	defer db.lock.Unlock()
 
@@ -402,7 +449,11 @@ func (db *s3Backend) deleteObjectLocked(bucketName, objectName string) error {
 
 // CreateBucket creates a new bucket.
 func (db *s3Backend) CreateBucket(name string) error {
-	_, err := db.fs.Stat(name)
+	err := db.setAuthForWebDAV()
+	if err != nil {
+		return err
+	}
+	_, err = db.fs.Stat(name)
 	if err != nil && err != vfs.ENOENT {
 		return gofakes3.ErrInternal
 	}
@@ -419,7 +470,11 @@ func (db *s3Backend) CreateBucket(name string) error {
 
 // DeleteBucket deletes the bucket with the given name.
 func (db *s3Backend) DeleteBucket(name string) error {
-	_, err := db.fs.Stat(name)
+	err := db.setAuthForWebDAV()
+	if err != nil {
+		return err
+	}
+	_, err = db.fs.Stat(name)
 	if err != nil {
 		return gofakes3.BucketNotFound(name)
 	}
@@ -433,6 +488,10 @@ func (db *s3Backend) DeleteBucket(name string) error {
 
 // BucketExists checks if the bucket exists.
 func (db *s3Backend) BucketExists(name string) (exists bool, err error) {
+	err = db.setAuthForWebDAV()
+	if err != nil {
+		return false, err
+	}
 	_, err = db.fs.Stat(name)
 	if err != nil {
 		return false, nil
@@ -443,7 +502,10 @@ func (db *s3Backend) BucketExists(name string) (exists bool, err error) {
 
 // CopyObject copy specified object from srcKey to dstKey.
 func (db *s3Backend) CopyObject(srcBucket, srcKey, dstBucket, dstKey string, meta map[string]string) (result gofakes3.CopyObjectResult, err error) {
-
+	err = db.setAuthForWebDAV()
+	if err != nil {
+		return gofakes3.CopyObjectResult{}, err
+	}
 	fp := path.Join(srcBucket, srcKey)
 	if srcBucket == dstBucket && srcKey == dstKey {
 		tmpMetaStorage.Store(fp, meta)

@@ -70,7 +70,9 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	storj.io/uplink v1.9.0
 )
-
+replace (
+	github.com/Mikubill/gofakes3 v0.0.3-0.20221030004050-725f2cf2bf5e => /home/artur/www/gofakes3
+)
 require (
 	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
