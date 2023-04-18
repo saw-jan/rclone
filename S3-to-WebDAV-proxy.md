@@ -2,7 +2,7 @@
 
 ## install, configure, run rclone
 - clone the version of  `rclone` with the fix: `git clone --branch=forwardS3AccessKeyToWebDAV --single-branch https://github.com/JankariTech/rclone.git`
-- build rclone. For me a simple `make` done the job, but here more details on how to build it: https://rclone.org/install/#source
+- build rclone. For me a simple `make` did the job, but here are more details on how to build it: https://rclone.org/install/#source
 - start OwnCloud or Nextcloud as a WebDAV server
 - configure the WebDAV server as a storage backend to rclone:
   - run `./rclone config`
@@ -20,7 +20,7 @@
 - check `./rclone listremotes --long`
   it should show the name of the config e.g. `OC: webdav` 
 - serve the data through the S3 protocol:  `./rclone serve s3 <backend name>:` e.g. `./rclone serve s3 OC:` (column after the name is needed)
-  by default the server will listen to port `8080`
+  by default the server will listen to port `8080`. To listen on a different port, add `--addr localhost:8081`
 
 ### get an oauth token
 - install the oauth2 app in ownCloud/Nextcloud
@@ -41,7 +41,7 @@
 }
 ```
 - download and install `oauth2l` https://github.com/google/oauth2l#pre-compiled-binaries
-- get an oauth2 token `./oauth2l fetch --credentials ./nc.json --scope all --refresh --output_format bare`
+- get an oauth2 token `./oauth2l fetch --credentials ./oauth.json --scope all --refresh --output_format bare`
 
 ### access WebDAV using S3:
 every root folder becomes a bucket, every file below it is a key
@@ -53,10 +53,10 @@ every root folder becomes a bucket, every file below it is a key
  
  ### minio client
 - install `mc`: https://min.io/docs/minio/linux/reference/minio-mc.html
-- add the proxy as alias: `./mc alias set mys3proxy http://localhost:8080 <oauth-access-token> anysecretkeyitdoesnotmatter`
+- add the proxy as alias: `mc alias set mys3proxy http://localhost:8080 <oauth-access-token> anysecretkeyitdoesnotmatter`
   replace `<oauth-access-token>` with your token, that you got with `oauth2l`
-- list buckets: `mc ls proxy`
-- list items in a bucket `mc ls proxy/folder`
-- upload a file: `mc cp <localfile> proxy/<bucket (root folder)>/<keyname>`
+- list buckets: `mc ls mys3proxy`
+- list items in a bucket `mc ls mys3proxy/folder`
+- upload a file: `mc cp <localfile> mys3proxy/<bucket (root folder)>/<keyname>`
 - find files `mc find proxy/<bucket>/ --name "*.txt"`
-- download all content of a bucket: `mc cp --recursive proxy/<bucket> /tmp/dst/` (items that have a space in their name seem to have an issue)
+- download all content of a bucket: `mc cp --recursive mys3proxy/<bucket> /tmp/dst/` (items that have a space in their name seem to have an issue)
