@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 
-	"github.com/Mikubill/gofakes3"
+	"github.com/JankariTech/gofakes3"
 	"github.com/go-chi/chi/v5"
 	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/hash"

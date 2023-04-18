@@ -6,7 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
-	"github.com/Mikubill/gofakes3/signature"
+	"github.com/JankariTech/gofakes3/signature"
 	"github.com/rclone/rclone/backend/webdav"
 	"io"
 	"log"
@@ -15,7 +15,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Mikubill/gofakes3"
+	"github.com/JankariTech/gofakes3"
 	"github.com/ncw/swift/v2"
 	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/vfs"

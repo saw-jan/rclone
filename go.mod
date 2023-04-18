@@ -8,8 +8,8 @@ require (
 	github.com/Azure/azure-storage-blob-go v0.15.0
 	github.com/Azure/go-autorest/autorest/adal v0.9.21
 	github.com/Azure/go-ntlmssp v0.0.0-20220621081337-cb9428e4ac1e
+	github.com/JankariTech/gofakes3 v0.0.0-20230418064444-c199f8c05959
 	github.com/Max-Sum/base32768 v0.0.0-20191205131208-7937843c71d5
-	github.com/Mikubill/gofakes3 v0.0.3-0.20221030004050-725f2cf2bf5e
 	github.com/Unknwon/goconfig v1.0.0
 	github.com/a8m/tree v0.0.0-20210414114729-ce3525c5c2ef
 	github.com/aalpar/deheap v0.0.0-20210914013432-0cc84d79dec3
@@ -70,9 +70,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	storj.io/uplink v1.9.0
 )
-replace (
-	github.com/Mikubill/gofakes3 v0.0.3-0.20221030004050-725f2cf2bf5e => /home/artur/www/gofakes3
-)
+
 require (
 	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
