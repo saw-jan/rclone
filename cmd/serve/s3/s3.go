@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"runtime"
 
 	"github.com/johannesboyne/gofakes3"
 	"github.com/rclone/rclone/cmd"
@@ -102,10 +103,21 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 
 		// Perform custom operations after the request has been handled by other handlers
+		// TODO check headers here
+		fmt.Println(r.Header)
 	})
 }
 
 func (backend *S3Backend) ListBuckets() ([]gofakes3.BucketInfo, error) {
+	// using fs directly
+	// items, err := backend.s3.f.List(backend.s3.ctx, "")
+	// fmt.Println(items)
+	// for _, item := range items {
+	// 	if a, ok := item.(fs.Directory); ok {
+	// 		fmt.Println(ok)
+	// 		fmt.Println(a)
+	// 	}
+	// }
 	node, err := backend.fs.Stat("/")
 	if err != nil {
 		return nil, err
@@ -176,4 +188,17 @@ func (backend *S3Backend) PutObject(bucketName, key string, meta map[string]stri
 func (backend *S3Backend) DeleteMulti(bucketName string, objects ...string) (gofakes3.MultiDeleteResult, error) {
 	result := gofakes3.MultiDeleteResult{}
 	return result, nil
+}
+
+func logCallStack() {
+	pc := make([]uintptr, 10) // Adjust the buffer size as needed
+	n := runtime.Callers(2, pc)
+	frames := runtime.CallersFrames(pc[:n])
+	for {
+		frame, more := frames.Next()
+		fmt.Println("Function:", frame.Function)
+		if !more {
+			break
+		}
+	}
 }
