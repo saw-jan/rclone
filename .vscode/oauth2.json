@@ -1,0 +1,12 @@
+{
+  "installed": {
+    "client_id": "lPXtBN8vgUyaJkqwe8G5mjEm1gHcgZj4YCvdcr6q7r9TacaOdl24fzL6tWrIQDwW",
+    "project_id": "focus-surfer-382910",
+    "auth_uri": "http://localhost/ocstable/index.php/apps/oauth2/authorize",
+    "token_uri": "http://localhost/ocstable/index.php/apps/oauth2/api/v1/token",
+    "client_secret": "WzCOR75ZKX8XSMgUCX59mlmnN0PmfzoXdppkdmAfxTpfQR5vnZY9x8Mt9v1PLyo6",
+    "redirect_uris": [
+      "http://localhost:9876"
+    ]
+  }
+}
