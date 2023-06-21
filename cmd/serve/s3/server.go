@@ -8,11 +8,8 @@ import (
 
 	"github.com/JankariTech/gofakes3"
 	"github.com/go-chi/chi/v5"
-	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/hash"
 	"github.com/rclone/rclone/lib/http/auth"
-	"github.com/rclone/rclone/vfs"
-	"github.com/rclone/rclone/vfs/vfsflags"
 )
 
 // Options contains options for the http Server
@@ -27,25 +24,23 @@ type Options struct {
 
 // Server is a s3.FileSystem interface
 type Server struct {
-	f       fs.Fs
-	vfs     *vfs.VFS
 	faker   *gofakes3.GoFakeS3
 	handler http.Handler
 	ctx     context.Context // for global config
+	args    []string
 }
 
 // Make a new S3 Server to serve the remote
-func newServer(ctx context.Context, f fs.Fs, opt *Options) *Server {
+func newServer(ctx context.Context, args []string, opt *Options) *Server {
 	w := &Server{
-		f:   f,
-		ctx: ctx,
-		vfs: vfs.New(f, &vfsflags.Opt),
+		ctx:  ctx,
+		args: args,
 	}
 
 	var newLogger logger
 
 	w.faker = gofakes3.New(
-		newBackend(w.vfs, opt, w),
+		newBackend(opt, w),
 		gofakes3.WithHostBucket(!opt.pathBucketMode),
 		gofakes3.WithLogger(newLogger),
 		gofakes3.WithRequestID(rand.Uint64()),
