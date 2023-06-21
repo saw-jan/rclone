@@ -44,6 +44,7 @@ var Command = &cobra.Command{
 	RunE: func(command *cobra.Command, args []string) error {
 		cmd.CheckArgs(1, 1, command, args)
 
+		// TODO: add this?
 		// if Opt.hashName == "auto" {
 		// 	Opt.hashType = f.Hashes().GetOne()
 		if Opt.hashName != "" {

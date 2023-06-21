@@ -45,7 +45,7 @@ func (db *s3Backend) setAuthForWebDAV(accessKey string) (*vfs.VFS, error) {
 	// new Fs
 	// TODO: assert that args[0] is remote
 	info, name, remote, config, _ := fs.ConfigFs(db.w.args[0])
-	f, err := info.NewFs(context.Background(), name, remote, config)
+	f, err := info.NewFs(context.Background(), name+accessKey, remote, config)
 	if err != nil {
 		return nil, err
 	}
