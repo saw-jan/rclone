@@ -3,8 +3,8 @@ package s3
 import (
 	"fmt"
 
-	"github.com/JankariTech/gofakes3"
 	"github.com/rclone/rclone/fs"
+	"github.com/saw-jan/gofakes3"
 )
 
 // logger output formatted message

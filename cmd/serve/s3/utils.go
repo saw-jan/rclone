@@ -7,9 +7,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/JankariTech/gofakes3"
 	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/vfs"
+	"github.com/saw-jan/gofakes3"
 )
 
 func getDirEntries(prefix string, fs *vfs.VFS) (vfs.Nodes, error) {

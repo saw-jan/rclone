@@ -6,10 +6,10 @@ import (
 	"math/rand"
 	"net/http"
 
-	"github.com/JankariTech/gofakes3"
 	"github.com/go-chi/chi/v5"
 	"github.com/rclone/rclone/fs/hash"
 	"github.com/rclone/rclone/lib/http/auth"
+	"github.com/saw-jan/gofakes3"
 )
 
 // Options contains options for the http Server

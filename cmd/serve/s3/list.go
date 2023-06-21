@@ -5,10 +5,10 @@ import (
 	"path"
 	"strings"
 
-	"github.com/JankariTech/gofakes3"
 	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/walk"
 	"github.com/rclone/rclone/vfs"
+	"github.com/saw-jan/gofakes3"
 )
 
 func (db *s3Backend) entryListR(vf *vfs.VFS, bucket, fdPath, name string, acceptComPrefix bool, response *gofakes3.ObjectList) error {
